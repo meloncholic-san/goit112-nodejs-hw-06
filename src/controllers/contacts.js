@@ -1,9 +1,14 @@
 import createHttpError from "http-errors";
+import * as fs from 'node:fs/promises';
+import path from 'node:path';
+
 import { parsePaginationParams } from "../utils/parsePaginationParams.js";
 
 import { getAllContacts, getContactById, createContact, updateContact, deleteContact, replaceContact} from "../services/contacts.js";
 import { parseSortParams } from "../utils/parseSortParams.js";
 import { parseFilterParams } from "../utils/parseFilterParams.js";
+import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+import { getEnvVar } from "../utils/getEnvVar.js";
 
     export async function getContactsCtrl(req, res) {
         const { page, perPage } = parsePaginationParams(req.query);
@@ -33,7 +38,18 @@ import { parseFilterParams } from "../utils/parseFilterParams.js";
 
     export async function createContactCtrl(req, res) {
         const payload = req.body;
-        const newContact = await createContact({...payload, userId: req.user.id});
+        let photo = null
+
+        if (getEnvVar("UPLOAD_TO_CLOUDINARY") === 'true') {
+            const result = await uploadToCloudinary(req.file.path);
+            fs.unlink(req.file.path);
+            photo = result.url;
+        } else {
+            await fs.rename(req.file.path, path.resolve('src', 'uploads', 'photos', req.file.filename));
+            photo = `http://localhost:8080/photos/${req.file.filename}`
+        }
+
+        const newContact = await createContact({...payload, userId: req.user.id, photo});
         res.status(201).json({data: newContact, message: "Successfully created new contact!"});
     }
 

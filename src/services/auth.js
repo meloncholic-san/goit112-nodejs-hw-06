@@ -1,8 +1,22 @@
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
 import crypto from 'node:crypto'
+import * as fs from 'node:fs';
+import path from 'node:path';
+import Handlebars from 'handlebars';
+import jwt from 'jsonwebtoken';
+
 import { UserCollection } from '../models/users.js';
 import { SessionCollection } from '../models/session.js';
+import { sendMail } from '../utils/sendMail.js';
+import { getEnvVar } from '../utils/getEnvVar.js';
+
+
+const RESET_PASSWORD_TEMPLATE = fs.readFileSync(
+  path.resolve('src', 'templates', 'reset-password.hbs'),
+  'UTF-8',
+);
+
 export const registerUser = async (payload) => {
 
     const user = await UserCollection.findOne({email:payload.email});
@@ -64,4 +78,39 @@ export const refreshSession = async (sessionId, refreshToken) => {
         accessTokenValidUntil: new Date(Date.now() + 10 * 60 * 1000),
         refreshTokenValidUntil: new Date(Date.now() + 24 * 60 *30 * 60 * 1000),
     });
+}
+
+
+export const requestResetPassword = async (email) => {
+    const user = await UserCollection.findOne({email});
+
+      if (user === null) {
+    throw new createHttpError.NotFound('User not found');
+  }
+    console.log(user);
+
+      const token = jwt.sign(
+    {
+      sub: user._id,
+      name: user.name,
+    },
+    getEnvVar('JWT_SECRET'),
+    {
+      expiresIn: '5m',
+    },
+  );
+
+
+    const template = Handlebars.compile(RESET_PASSWORD_TEMPLATE);
+
+    const result = await sendMail(
+    user.email,
+    'Reset password',
+    template({ link: `${getEnvVar('APP_DOMAIN')}/reset-password/?token=${token}` }),
+  );
+   if (!result.accepted || result.accepted.length === 0) {
+    throw new createHttpError.InternalServerError(
+      'Failed to send the email, please try again later.'
+    );
+  }
 }

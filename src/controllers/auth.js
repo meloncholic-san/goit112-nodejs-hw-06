@@ -1,4 +1,5 @@
-import { registerUser, loginUser, logoutUser, refreshSession} from '../services/auth.js';
+import createHttpError from 'http-errors';
+import { registerUser, loginUser, logoutUser, refreshSession, requestResetPassword} from '../services/auth.js';
 
 export const registerUserCtrl = async (req, res) => {
   const user = await registerUser(req.body);
@@ -69,3 +70,13 @@ export const refreshTokenCtrl = async(req, res) => {
         },
     });
 }
+
+export const requestSendResetEmail = async (req, res) => {
+    const { email } = req.body;
+    const result = await requestResetPassword(email);
+
+    if(!result.accepted || result.accepted.length === 0) {
+        throw new createHttpError.InternalServerError("Failed to send the email, please try again later.");
+    }
+    res.json({ status: 200, message: 'Reset password email sent successfully' });
+}   

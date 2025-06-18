@@ -28,6 +28,11 @@ const contactsSchema = new mongoose.Schema(
     userId : {
       type: String, 
       required: true,
+    },
+    photo: {
+      type: String, 
+      required: false,
+      default: null,
     }
   },
   {
