@@ -23,7 +23,7 @@ import { getEnvVar } from "../utils/getEnvVar.js";
             userId: req.user.id,
         });
 
-        res.json({data:contacts, message: "Successfully found contacts!"});
+        res.json({status: 200, data:contacts, message: "Successfully found contacts!"});
     }
     
     export async function getContactByIdCtrl(req, res) {
@@ -32,7 +32,7 @@ import { getEnvVar } from "../utils/getEnvVar.js";
 
         if(!contact) throw new createHttpError.NotFound('Contact not found');
 
-        res.json({data:contact, message: "Successfully found contact!"});
+        res.json({status:200, data:contact, message: "Successfully found contact!"});
     }
 
 
