@@ -40,13 +40,15 @@ import { getEnvVar } from "../utils/getEnvVar.js";
         const payload = req.body;
         let photo = null
 
-        if (getEnvVar("UPLOAD_TO_CLOUDINARY") === 'true') {
-            const result = await uploadToCloudinary(req.file.path);
-            fs.unlink(req.file.path);
-            photo = result.url;
-        } else {
-            await fs.rename(req.file.path, path.resolve('src', 'uploads', 'photos', req.file.filename));
-            photo = `http://localhost:8080/photos/${req.file.filename}`
+        if (req.file) {
+            if (getEnvVar("UPLOAD_TO_CLOUDINARY") === 'true') {
+                const result = await uploadToCloudinary(req.file.path);
+                fs.unlink(req.file.path);
+                photo = result.url;
+            } else {
+                await fs.rename(req.file.path, path.resolve('src', 'uploads', 'photos', req.file.filename));
+                photo = `http://localhost:8080/photos/${req.file.filename}`;
+            }
         }
 
         const newContact = await createContact({...payload, userId: req.user.id, photo});
