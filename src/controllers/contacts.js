@@ -62,14 +62,14 @@ import { getEnvVar } from "../utils/getEnvVar.js";
         throw new createHttpError.NotFound('Contact not found');
         }
 
-        res.json({data: updatedContact, message: "Successfully updated contact!"});
+        res.json({status: 200, data: updatedContact, message: "Successfully updated contact!"});
     }
 
     export async function deleteContactCtrl(req, res) {
         const contactId = req.params.id;
         const deletedContact = await deleteContact(contactId, req.user.id);
         if(!deletedContact) throw new createHttpError.NotFound('Contact not found');
-        res.status(204);
+        res.status(204).end();
     }
 
 

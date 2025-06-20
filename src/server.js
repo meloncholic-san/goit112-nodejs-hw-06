@@ -16,7 +16,7 @@ export async function setupServer() {
     app.use(PinoHttp());
     app.use(cookieParser());
     app.use('/photos', express.static(path.resolve('src', 'uploads', 'photos')));
-    app.use('/api', routes);
+    app.use('/', routes);
 
 
     app.use('', notFoundHandler);

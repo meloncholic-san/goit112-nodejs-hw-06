@@ -74,7 +74,7 @@ export const refreshTokenCtrl = async(req, res) => {
 export const requestSendResetEmailCtrl = async (req, res) => {
     const { email } = req.body;
     const result = await requestResetPassword(email);
-
+    
     res.json({ status: 200, message: 'Reset password email sent successfully' });
 }   
 
